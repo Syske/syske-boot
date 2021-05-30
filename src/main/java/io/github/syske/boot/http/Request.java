@@ -1,7 +1,8 @@
 package io.github.syske.boot.http;
 
+import io.github.syske.boot.http.header.RequestHear;
+
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Map;
 
 /**
@@ -22,4 +23,10 @@ public interface Request {
      * @return
      */
     Map<String, String> getRequestAttributeMap() throws Exception;
+
+    /**
+     * 获取请求头
+     * @return
+     */
+    RequestHear getRequestHear();
 }

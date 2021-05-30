@@ -1,7 +1,10 @@
 package io.github.syske.boot.http.impl;
 
 import com.google.common.collect.Maps;
+import io.github.syske.boot.exception.IllegalParameterException;
 import io.github.syske.boot.http.Request;
+import io.github.syske.boot.http.RequestMethod;
+import io.github.syske.boot.http.header.RequestHear;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,9 +28,9 @@ public class SyskeRequest implements Request {
      */
     private Map<String, String> requestAttributeMap;
 
-    private String header;
+    private RequestHear header;
 
-    public SyskeRequest(InputStream inputStream) throws IOException{
+    public SyskeRequest(InputStream inputStream) throws IOException, IllegalParameterException{
         this.inputStream = inputStream;
         initRequest();
     }
@@ -38,7 +41,12 @@ public class SyskeRequest implements Request {
     }
 
     @Override
-    public Map<String, String> getRequestAttributeMap() throws IOException{
+    public RequestHear getRequestHear() {
+        return header;
+    }
+
+    @Override
+    public Map<String, String> getRequestAttributeMap() throws IOException, IllegalParameterException{
         if (requestAttributeMap != null) {
             return requestAttributeMap;
         }
@@ -51,9 +59,11 @@ public class SyskeRequest implements Request {
      *
      * @throws IOException
      */
-    private void initRequest() throws IOException {
+    private void initRequest() throws IOException, IllegalParameterException {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-        header = bufferedReader.readLine();
+        String headerStr = bufferedReader.readLine();
+        String[] headers = headerStr.split(" ", 3);
+        header = new RequestHear(RequestMethod.match(headers[0]), headers[1]);
         Map<String, String> attributeMap = Maps.newHashMap();
         String readLine = null;
         while ((readLine = bufferedReader.readLine()) != null) {
@@ -68,7 +78,4 @@ public class SyskeRequest implements Request {
         requestAttributeMap = attributeMap;
     }
 
-    public String getHeader() {
-        return header;
-    }
 }

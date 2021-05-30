@@ -1,6 +1,7 @@
 package io.github.syske.boot.handler;
 
 import com.google.common.collect.Maps;
+import io.github.syske.boot.exception.IllegalParameterException;
 import io.github.syske.boot.http.impl.SyskeRequest;
 import io.github.syske.boot.http.impl.SyskeResponse;
 import org.slf4j.Logger;
@@ -26,10 +27,18 @@ public class SyskeRequestHandler implements Runnable {
 
     public SyskeRequestHandler(Socket socket) throws IOException{
         this.socket = socket;
-        init();
+        try {
+            init();
+        } catch (IllegalParameterException e) {
+            logger.error("非法请求参数:", e);
+            syskeResponse.write(500, "非法请求参数");
+        } catch (IOException e) {
+            logger.error("请求信息解析错误:", e);
+            syskeResponse.write(500, "请求信息解析错误");
+        }
     }
 
-    private void init() throws IOException{
+    private void init() throws IOException, IllegalParameterException {
         this.syskeRequest = new SyskeRequest(socket.getInputStream());
         this.syskeResponse = new SyskeResponse(socket.getOutputStream());
     }
@@ -48,7 +57,7 @@ public class SyskeRequestHandler implements Runnable {
      * @throws Exception
      */
     public void doDispatcher() throws Exception{
-        logger.info("请求头信息：{}", syskeRequest.getHeader());
+        logger.info("请求头信息：{}", syskeRequest.getRequestHear());
         logger.info("请求信息：{}", syskeRequest.getRequestAttributeMap());
         syskeResponse.write(String.format("hello syskeCat, dateTime:%d", System.currentTimeMillis()));
         socket.close();

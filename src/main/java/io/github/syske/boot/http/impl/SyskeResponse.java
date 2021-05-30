@@ -23,13 +23,27 @@ public class SyskeResponse implements Response {
         return outputStream;
     }
 
-    //将文本转换为字节流
+    /**
+     * 写入响应信息
+     * @param content
+     * @throws IOException
+     */
     public void write(String content) throws IOException {
+        this.write(200, content);
+    }
+
+    /**
+     * 写入响应信息
+     * @param code
+     * @param content
+     * @throws IOException
+     */
+    public void write(int code, String content) throws IOException {
         StringBuffer httpResponse = new StringBuffer();
         // 按照HTTP响应报文的格式写入
-        httpResponse.append("HTTP/1.1 200 OK\n").append("Content-Type:text/html\n").append("\r\n")
-            .append("<html><head><link rel=\"icon\" href=\"data:;base64,=\"></head><body>").append(content)
-            .append("</body></html>");
+        httpResponse.append("HTTP/1.1 ").append(code).append(" OK\n").append("Content-Type:text/html\n").append("\r\n")
+                .append("<html><head><link rel=\"icon\" href=\"data:;base64,=\"></head><body>").append(content)
+                .append("</body></html>");
         // 将文本转为字节流
         outputStream.write(httpResponse.toString().getBytes());
         outputStream.flush();
