@@ -1,0 +1,72 @@
+# Compiled class file
+*.class
+classes/
+/classes/*
+out/
+target/
+/out/*
+*.bat
+*.jar
+# Log file
+*.log
+build.xml
+*.raq.bak
+
+# IDE config
+*.iml
+.classpath
+.project
+.idea/
+dist/
+.settings/
+.myeclipse/
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.nar
+*.tar.gz
+*.war
+*.pdf
+*.jasper
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**
+!**/src/test/**
+**/.mvn/**
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+**/mvnw.cmd
+**/mvnw
+./mvn/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+
+### VS Code ###
+.vscode/
