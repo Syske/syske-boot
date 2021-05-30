@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -24,6 +25,7 @@ public class SyskeRequestHandler implements Runnable {
     private Socket socket;
     private SyskeRequest syskeRequest;
     private SyskeResponse syskeResponse;
+    private Map<String, Method> requestMappingMap;
 
     public SyskeRequestHandler(Socket socket) throws IOException{
         this.socket = socket;
@@ -41,6 +43,7 @@ public class SyskeRequestHandler implements Runnable {
     private void init() throws IOException, IllegalParameterException {
         this.syskeRequest = new SyskeRequest(socket.getInputStream());
         this.syskeResponse = new SyskeResponse(socket.getOutputStream());
+        this.requestMappingMap = SyskeBootContentScanHandler.getRequestMappingMap();
     }
 
     @Override
@@ -59,7 +62,14 @@ public class SyskeRequestHandler implements Runnable {
     public void doDispatcher() throws Exception{
         logger.info("请求头信息：{}", syskeRequest.getRequestHear());
         logger.info("请求信息：{}", syskeRequest.getRequestAttributeMap());
-        syskeResponse.write(String.format("hello syskeCat, dateTime:%d", System.currentTimeMillis()));
+        String requestMapping = syskeRequest.getRequestHear().getRequestMapping();
+        if (requestMappingMap.containsKey(requestMapping)) {
+            Method method = requestMappingMap.get(requestMapping);
+            logger.debug("method:{}", method);
+            syskeResponse.write(String.format("hello syskeCat, dateTime:%d", System.currentTimeMillis()));
+        } else {
+            syskeResponse.write(404, String.format("resources not found :%d", System.currentTimeMillis()));
+        }
         socket.close();
     }
 }

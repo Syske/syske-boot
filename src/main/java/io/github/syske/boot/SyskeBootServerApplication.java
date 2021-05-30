@@ -1,5 +1,6 @@
 package io.github.syske.boot;
 
+import io.github.syske.boot.handler.SyskeBootContentScanHandler;
 import io.github.syske.boot.handler.SyskeRequestHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ public class SyskeBootServerApplication {
     private static ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(5, 10, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     public static void main(String[] args) {
+        SyskeBootContentScanHandler.init();
         start();
     }
 
