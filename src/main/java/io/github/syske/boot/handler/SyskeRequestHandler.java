@@ -2,11 +2,11 @@ package io.github.syske.boot.handler;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.net.Socket;
 import java.util.Map;
 
-import io.github.syske.boot.controller.Test2Controller;
+import io.github.syske.boot.http.Request;
+import io.github.syske.boot.http.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,8 +23,8 @@ import io.github.syske.boot.http.impl.SyskeResponse;
 public class SyskeRequestHandler implements Runnable {
     private final Logger logger = LoggerFactory.getLogger(SyskeRequestHandler.class);
     private Socket socket;
-    private SyskeRequest syskeRequest;
-    private SyskeResponse syskeResponse;
+    private Request request;
+    private Response response;
     private Map<String, Method> requestMappingMap;
 
     public SyskeRequestHandler(Socket socket) throws IOException{
@@ -33,16 +33,16 @@ public class SyskeRequestHandler implements Runnable {
             init();
         } catch (IllegalParameterException e) {
             logger.error("非法请求参数:", e);
-            syskeResponse.write(500, "非法请求参数");
+            response.write(500, "非法请求参数");
         } catch (IOException e) {
             logger.error("请求信息解析错误:", e);
-            syskeResponse.write(500, "请求信息解析错误");
+            response.write(500, "请求信息解析错误");
         }
     }
 
     private void init() throws IOException, IllegalParameterException {
-        this.syskeRequest = new SyskeRequest(socket.getInputStream());
-        this.syskeResponse = new SyskeResponse(socket.getOutputStream());
+        this.request = new SyskeRequest(socket.getInputStream());
+        this.response = new SyskeResponse(socket.getOutputStream());
         this.requestMappingMap = SyskeBootContentScanHandler.getRequestMappingMap();
     }
 
@@ -60,9 +60,9 @@ public class SyskeRequestHandler implements Runnable {
      * @throws Exception
      */
     public void doDispatcher() throws Exception{
-        logger.info("请求头信息：{}", syskeRequest.getRequestHear());
-        logger.info("请求信息：{}", syskeRequest.getRequestAttributeMap());
-        String requestMapping = syskeRequest.getRequestHear().getRequestMapping();
+        logger.info("请求头信息：{}", request.getRequestHear());
+        logger.info("请求信息：{}", request.getRequestAttributeMap());
+        String requestMapping = request.getRequestHear().getRequestMapping();
         if (requestMappingMap.containsKey(requestMapping)) {
             Method method = requestMappingMap.get(requestMapping);
             logger.debug("method:{}", method);
@@ -70,9 +70,9 @@ public class SyskeRequestHandler implements Runnable {
             Object o = declaringClass.newInstance();
             Object invoke = method.invoke(o);
             logger.info("invoke:{}", invoke);
-            syskeResponse.write(String.format("hello syskeCat, dateTime:%d\n result = %s", System.currentTimeMillis(), invoke));
+            response.write(String.format("hello syskeCat, dateTime:%d\n result = %s", System.currentTimeMillis(), invoke));
         } else {
-            syskeResponse.write(404, String.format("resources not found :%d", System.currentTimeMillis()));
+            response.write(404, String.format("resources not found :%d", System.currentTimeMillis()));
         }
         socket.close();
     }

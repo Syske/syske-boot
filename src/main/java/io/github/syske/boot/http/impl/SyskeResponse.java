@@ -28,6 +28,7 @@ public class SyskeResponse implements Response {
      * @param content
      * @throws IOException
      */
+    @Override
     public void write(String content) throws IOException {
         this.write(200, content);
     }
@@ -38,6 +39,7 @@ public class SyskeResponse implements Response {
      * @param content
      * @throws IOException
      */
+    @Override
     public void write(int code, String content) throws IOException {
         StringBuffer httpResponse = new StringBuffer();
         // 按照HTTP响应报文的格式写入

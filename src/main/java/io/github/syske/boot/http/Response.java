@@ -1,5 +1,6 @@
 package io.github.syske.boot.http;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 /**
@@ -14,4 +15,19 @@ public interface Response {
      * @return
      */
     OutputStream getOutputStream();
+
+    /**
+     * 写入响应结果
+     * @param content
+     * @throws IOException
+     */
+    void write(String content) throws IOException;
+
+    /**
+     * 写入响应结果
+     * @param code
+     * @param content
+     * @throws IOException
+     */
+    void write(int code, String content) throws IOException;
 }
