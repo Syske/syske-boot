@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * @author: syske
  * @date: 2021-05-30 15:42
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequestMapping {
     String value();

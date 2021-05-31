@@ -1,18 +1,18 @@
 package io.github.syske.boot.handler;
 
-import com.google.common.collect.Maps;
-import io.github.syske.boot.exception.IllegalParameterException;
-import io.github.syske.boot.http.impl.SyskeRequest;
-import io.github.syske.boot.http.impl.SyskeResponse;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.net.Socket;
+import java.util.Map;
+
+import io.github.syske.boot.controller.Test2Controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
+import io.github.syske.boot.exception.IllegalParameterException;
+import io.github.syske.boot.http.impl.SyskeRequest;
+import io.github.syske.boot.http.impl.SyskeResponse;
 
 /**
  * @program: syske-boot
@@ -66,7 +66,11 @@ public class SyskeRequestHandler implements Runnable {
         if (requestMappingMap.containsKey(requestMapping)) {
             Method method = requestMappingMap.get(requestMapping);
             logger.debug("method:{}", method);
-            syskeResponse.write(String.format("hello syskeCat, dateTime:%d", System.currentTimeMillis()));
+            Class<?> declaringClass = method.getDeclaringClass();
+            Object o = declaringClass.newInstance();
+            Object invoke = method.invoke(o);
+            logger.info("invoke:{}", invoke);
+            syskeResponse.write(String.format("hello syskeCat, dateTime:%d\n result = %s", System.currentTimeMillis(), invoke));
         } else {
             syskeResponse.write(404, String.format("resources not found :%d", System.currentTimeMillis()));
         }
