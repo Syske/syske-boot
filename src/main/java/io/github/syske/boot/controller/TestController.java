@@ -19,7 +19,12 @@ public class TestController {
     }
 
     @RequestMapping("/sayHello")
-    public String test(@RequestParameter("name") String name) {
-        return "hello," + name;
+    public String testName(@RequestParameter("name") String name) {
+        return "hello, " + name;
+    }
+
+    @RequestMapping("/sayHello2")
+    public String test(@RequestParameter("name") String name, @RequestParameter("age") String age) {
+        return "hello, " + name + ", your age =" + age;
     }
 }

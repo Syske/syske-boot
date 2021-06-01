@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class SyskeBootServerApplication {
     private static final Logger logger = LoggerFactory.getLogger(SyskeBootServerApplication.class);
-    private static final int SERVER_PORT = 8080;
+    private static final int SERVER_PORT = 8088;
     private static ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(5, 10, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     public static void main(String[] args) {
