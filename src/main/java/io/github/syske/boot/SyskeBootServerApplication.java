@@ -39,7 +39,7 @@ public class SyskeBootServerApplication {
                 threadPoolExecutor.execute(new SyskeRequestHandler(accept));
             }
         } catch (Exception e) {
-            logger.error("服务器后端异常");
+            logger.error("服务器后端异常", e);
         }
     }
 }

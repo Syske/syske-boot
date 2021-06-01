@@ -5,12 +5,14 @@ import io.github.syske.boot.exception.IllegalParameterException;
 import io.github.syske.boot.http.Request;
 import io.github.syske.boot.http.RequestMethod;
 import io.github.syske.boot.http.header.RequestHear;
+import io.github.syske.boot.util.StringUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @program: example-2021.05.28
@@ -26,7 +28,7 @@ public class SyskeRequest implements Request {
     /**
      * 请求参数
      */
-    private Map<String, String> requestAttributeMap;
+    private Map<String, Object> requestAttributeMap;
 
     private RequestHear header;
 
@@ -46,7 +48,7 @@ public class SyskeRequest implements Request {
     }
 
     @Override
-    public Map<String, String> getRequestAttributeMap() throws IOException, IllegalParameterException{
+    public Map<String, Object> getRequestAttributeMap() throws IOException, IllegalParameterException{
         if (requestAttributeMap != null) {
             return requestAttributeMap;
         }
@@ -62,9 +64,24 @@ public class SyskeRequest implements Request {
     private void initRequest() throws IOException, IllegalParameterException {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
         String headerStr = bufferedReader.readLine();
+        if (Objects.isNull(headerStr)) {
+            return;
+        }
         String[] headers = headerStr.split(" ", 3);
-        header = new RequestHear(RequestMethod.match(headers[0]), headers[1]);
-        Map<String, String> attributeMap = Maps.newHashMap();
+        String requestMapping = headers[1];
+        Map<String, Object> attributeMap = Maps.newHashMap();
+        if (requestMapping.contains("?")) {
+            int endIndex = requestMapping.lastIndexOf('?');
+            String requestParameterStr = requestMapping.substring(endIndex + 1);
+            requestMapping = requestMapping.substring(0, endIndex);
+            String[] split = requestParameterStr.split("&");
+            for (String s : split) {
+                String[] split1 = s.split("=");
+                attributeMap.put(StringUtil.trim(split1[0]), StringUtil.trim(split1[1]));
+            }
+
+        }
+        this.header = new RequestHear(RequestMethod.match(headers[0]), requestMapping);
         String readLine = null;
         while ((readLine = bufferedReader.readLine()) != null) {
             if(readLine.length()==0) {

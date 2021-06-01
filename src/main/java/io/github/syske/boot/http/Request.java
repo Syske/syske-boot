@@ -22,7 +22,7 @@ public interface Request {
      * 获取请求参数
      * @return
      */
-    Map<String, String> getRequestAttributeMap() throws Exception;
+    Map<String, Object> getRequestAttributeMap() throws Exception;
 
     /**
      * 获取请求头

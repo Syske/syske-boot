@@ -1,12 +1,18 @@
 package io.github.syske.boot.handler;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.net.Socket;
 import java.util.Map;
+import java.util.Objects;
 
+import io.github.syske.boot.annotation.RequestParameter;
 import io.github.syske.boot.http.Request;
 import io.github.syske.boot.http.Response;
+import io.github.syske.boot.http.header.RequestHear;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,15 +66,29 @@ public class SyskeRequestHandler implements Runnable {
      * @throws Exception
      */
     public void doDispatcher() throws Exception{
-        logger.info("请求头信息：{}", request.getRequestHear());
-        logger.info("请求信息：{}", request.getRequestAttributeMap());
-        String requestMapping = request.getRequestHear().getRequestMapping();
+        RequestHear requestHear = request.getRequestHear();
+        Map<String, Object> requestAttributeMap = request.getRequestAttributeMap();
+        logger.info("请求头信息：{}", requestHear);
+        logger.info("请求信息：{}", requestAttributeMap);
+        if (Objects.isNull(requestHear) || Objects.isNull(requestAttributeMap)) {
+            return;
+        }
+        String requestMapping = requestHear.getRequestMapping();
         if (requestMappingMap.containsKey(requestMapping)) {
             Method method = requestMappingMap.get(requestMapping);
             logger.debug("method:{}", method);
             Class<?> declaringClass = method.getDeclaringClass();
+            Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+            Object[] parameters = new Object[parameterAnnotations.length];
+            for (int i = 0; i < parameterAnnotations.length; i++) {
+                Annotation parameterAnnotation = parameterAnnotations[i][0];
+                RequestParameter annotation = parameterAnnotation.annotationType().getAnnotation(RequestParameter.class);
+//                Object parameter = parameterType.newInstance();
+//                String typeName = parameterType.getTypeName();
+                parameters[i] = requestAttributeMap.get(annotation.value());
+            }
             Object o = declaringClass.newInstance();
-            Object invoke = method.invoke(o);
+            Object invoke = method.invoke(o, parameters);
             logger.info("invoke:{}", invoke);
             response.write(String.format("hello syskeCat, dateTime:%d\n result = %s", System.currentTimeMillis(), invoke));
         } else {

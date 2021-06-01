@@ -2,6 +2,7 @@ package io.github.syske.boot.controller;
 
 import io.github.syske.boot.annotation.Controller;
 import io.github.syske.boot.annotation.RequestMapping;
+import io.github.syske.boot.annotation.RequestParameter;
 
 /**
  * @program: syske-boot
@@ -15,5 +16,10 @@ public class TestController {
     @RequestMapping("/test")
     public String testRequstMapping() {
         return "hello syske-boot";
+    }
+
+    @RequestMapping("/sayHello")
+    public String test(@RequestParameter("name") String name) {
+        return "hello," + name;
     }
 }
