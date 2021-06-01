@@ -81,10 +81,7 @@ public class SyskeRequestHandler implements Runnable {
             Annotation[][] parameterAnnotations = method.getParameterAnnotations();
             Object[] parameters = new Object[parameterAnnotations.length];
             for (int i = 0; i < parameterAnnotations.length; i++) {
-                Annotation parameterAnnotation = parameterAnnotations[i][0];
-                RequestParameter annotation = parameterAnnotation.annotationType().getAnnotation(RequestParameter.class);
-//                Object parameter = parameterType.newInstance();
-//                String typeName = parameterType.getTypeName();
+                RequestParameter annotation = (RequestParameter)parameterAnnotations[i][0];
                 parameters[i] = requestAttributeMap.get(annotation.value());
             }
             Object o = declaringClass.newInstance();
