@@ -1,5 +1,6 @@
 package io.github.syske.boot;
 
+import io.github.syske.boot.annotation.ComponentScan;
 import io.github.syske.boot.handler.SyskeBootContentScanHandler;
 import io.github.syske.boot.handler.SyskeRequestHandler;
 import org.slf4j.Logger;
@@ -17,13 +18,14 @@ import java.util.concurrent.TimeUnit;
  * @author: syske
  * @date: 2021-05-30 10:03
  */
+@ComponentScan({"io.github.syske.boot"})
 public class SyskeBootServerApplication {
     private static final Logger logger = LoggerFactory.getLogger(SyskeBootServerApplication.class);
     private static final int SERVER_PORT = 8088;
     private static ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(5, 10, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     public static void main(String[] args) {
-        SyskeBootContentScanHandler.init();
+        SyskeBootContentScanHandler.init(SyskeBootServerApplication.class);
         start();
     }
 
@@ -34,7 +36,7 @@ public class SyskeBootServerApplication {
     public static void start() {
         try (ServerSocket serverSocket = new ServerSocket(SERVER_PORT) ) {
             Socket accept = null;
-            logger.info("SyskeCatServer is starting……, port: {}", SERVER_PORT);
+            logger.info("SyskeCatServer start finished, server port is {}", SERVER_PORT);
             while ((accept = serverSocket.accept()) != null){
                 threadPoolExecutor.execute(new SyskeRequestHandler(accept));
             }

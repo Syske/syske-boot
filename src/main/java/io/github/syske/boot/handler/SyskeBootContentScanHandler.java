@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import io.github.syske.boot.annotation.ComponentScan;
 import io.github.syske.boot.annotation.Service;
 import io.github.syske.boot.service.TestService;
 import org.slf4j.Logger;
@@ -58,28 +59,49 @@ public class SyskeBootContentScanHandler {
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    public static void init() {
+    public static void init(Class aClass) {
         try {
-            // 扫描conttoller
-            scanPackage("io.github.syske.boot.controller", controllerSet);
+            // 初始话
+            componentScanInit(aClass);
             // 扫描controller的RequestMapping
-            scanRequestMapping(controllerSet);
+            initRequestMappingMap();
         } catch (Exception e) {
             logger.error("syske-boot 启动异常：", e);
         }
     }
 
     /**
+     * 扫描指定的包路径，如果无该路径，则默认扫描服务器核心入口所在路径
+     * @param aClass
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    private static void componentScanInit(Class aClass) throws IOException, ClassNotFoundException {
+        logger.info("componentScanInit start init……");
+        logger.info("componentScanInit aClass: {}", aClass);
+        Annotation annotation = aClass.getAnnotation(ComponentScan.class);
+        if (Objects.isNull(annotation)) {
+            Package aPackage = aClass.getPackage();
+            scanPackage(aPackage.toString(), classSet);
+        } else {
+            String[] value = ((ComponentScan)annotation).value();
+            for (String s : value) {
+                scanPackage(s, classSet);
+            }
+        }
+        logger.info("componentScanInit end, classSet = {}", classSet);
+    }
+
+    /**
      * 扫描controller的RequestMapping
      * 
-     * @param controllerSet
      */
-    private static void scanRequestMapping(Set<Class> controllerSet) {
-        logger.info("start to scanRequestMapping, controllerSet = {}", controllerSet);
-        if (controllerSet == null) {
+    private static void initRequestMappingMap() {
+        logger.info("start to scanRequestMapping, controllerSet = {}", classSet);
+        if (classSet == null) {
             return;
         }
-        controllerSet.forEach(aClass -> {
+        classSet.forEach(aClass -> {
             Method[] methods = aClass.getDeclaredMethods();
             for (Method method : methods) {
                 RequestMapping annotation = method.getAnnotation(RequestMapping.class);
@@ -92,33 +114,15 @@ public class SyskeBootContentScanHandler {
     }
 
     /**
-     * 扫描指定的包名下的类
+     * 初始化容器：扫描service注解类
      * 
-     * @param packageName
      * @param classSet
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    private static void scanPackage(String packageName, Set<Class> classSet)
-        throws IOException, ClassNotFoundException {
-        logger.info("start to scanPackage, packageName = {}", packageName);
-        Enumeration<URL> classes = ClassLoader.getSystemResources(packageName.replace('.', '/'));
-        while (classes.hasMoreElements()) {
-            URL url = classes.nextElement();
-            File packagePath = new File(url.getPath());
-            if (packagePath.isDirectory()) {
-                String[] files = packagePath.list();
-                for (String fileName : files) {
-                    String className = fileName.substring(0, fileName.lastIndexOf('.'));
-                    String fullClassName = String.format("%s.%s", packageName, className);
-                    classSet.add(Class.forName(fullClassName));
-                }
-            }
-        }
-        logger.info("scanPackage end, classSet = {}", classSet);
-    }
-
     private static void initSyskeBootContent(Set<Class> classSet) {
+        logger.info("start to initSyskeBootContent ……");
+        long startTIme = System.currentTimeMillis();
         if(classSet == null || classSet.size() == 0) {
             return;
         }
@@ -134,14 +138,29 @@ public class SyskeBootContentScanHandler {
             }
 
         });
+        long useTime = System.currentTimeMillis() - startTIme;
+        logger.info("initSyskeBootContent finished. useTime {}ms", useTime);
     }
 
+    /**
+     * 判断指定类是否有指定的注解
+     * @param zClass
+     * @param annotationClass
+     * @return
+     */
     private static boolean hasAnnotation(Class zClass, Class annotationClass) {
         Annotation annotation = zClass.getAnnotation(annotationClass);
         return Objects.nonNull(annotation);
     }
 
-    private static void scanPackageToIoc(String packageName, Set<Class> classSet)
+    /**
+     * 扫描指定包名下所有类，并生成classSet
+     * @param packageName
+     * @param classSet
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    private static void scanPackage(String packageName, Set<Class> classSet)
             throws IOException, ClassNotFoundException {
         logger.info("start to scanPackage, packageName = {}", packageName);
         Enumeration<URL> classes = ClassLoader.getSystemResources(packageName.replace('.', '/'));
@@ -154,7 +173,7 @@ public class SyskeBootContentScanHandler {
                     String fileName = file.getName();
                     if (file.isDirectory()) {
                         String newPackageName = String.format("%s.%s", packageName, fileName);
-                        scanPackageToIoc(newPackageName, classSet);
+                        scanPackage(newPackageName, classSet);
                     } else {
                         String className = fileName.substring(0, fileName.lastIndexOf('.'));
                         String fullClassName = String.format("%s.%s", packageName, className);
@@ -167,13 +186,12 @@ public class SyskeBootContentScanHandler {
                 classSet.add(Class.forName(fullClassName));
             }
         }
-        logger.info("scanPackage end, classSet = {}", classSet);
     }
 
     public static void main(String[] args) throws Exception{
-        scanPackageToIoc("io.github.syske.boot", classSet);
+        scanPackage("io.github.syske.boot", classSet);
         logger.info("classSet = {}", classSet);
-        scanRequestMapping(classSet);
+        initRequestMappingMap();
         logger.info("requestMappingMap = {}", requestMappingMap);
         initSyskeBootContent(classSet);
         logger.info("contentMap = {}", contentMap);
