@@ -2,6 +2,7 @@ package io.github.syske.boot.http;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.channels.SocketChannel;
 
 /**
  * @program: syske-boot
@@ -14,7 +15,7 @@ public interface Response {
      * 获取输出流
      * @return
      */
-    OutputStream getOutputStream();
+    SocketChannel getSocketChannel();
 
     /**
      * 写入响应结果

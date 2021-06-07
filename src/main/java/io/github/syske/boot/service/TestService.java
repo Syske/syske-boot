@@ -12,7 +12,7 @@ import io.github.syske.boot.annotation.Service;
 @Service
 public class TestService {
 
-    public void helloIoc(String name) {
-        System.out.println("hello ioc, " + name);
+    public String helloIoc(String name) {
+        return "hello ioc, " + name;
     }
 }

@@ -1,7 +1,10 @@
 package io.github.syske.boot.controller;
 
+import io.github.syske.boot.annotation.Autowired;
 import io.github.syske.boot.annotation.Controller;
 import io.github.syske.boot.annotation.RequestMapping;
+import io.github.syske.boot.annotation.RequestParameter;
+import io.github.syske.boot.service.TestService;
 
 /**
  * @program: syske-boot
@@ -12,8 +15,16 @@ import io.github.syske.boot.annotation.RequestMapping;
 @Controller
 public class Test2Controller {
 
+    @Autowired
+    private TestService service;
+
     @RequestMapping("/test2")
     public String test2() {
         return "test2";
+    }
+
+    @RequestMapping("/testAutowire")
+    public String testAutowire(@RequestParameter("name") String name){
+        return service.helloIoc(name);
     }
 }

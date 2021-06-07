@@ -2,6 +2,9 @@ package io.github.syske.boot.http.impl;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.channels.SocketChannel;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import io.github.syske.boot.http.Response;
 
@@ -12,15 +15,16 @@ import io.github.syske.boot.http.Response;
  * @date: 2021-05-29 15:47
  */
 public class SyskeResponse implements Response {
-    private OutputStream outputStream;
+    private static Charset charset = StandardCharsets.UTF_8;
+    private SocketChannel channel;
 
-    public SyskeResponse(OutputStream outputStream) {
-        this.outputStream = outputStream;
+    public SyskeResponse(SocketChannel channel) {
+        this.channel = channel;
     }
 
     @Override
-    public OutputStream getOutputStream() {
-        return outputStream;
+    public SocketChannel getSocketChannel() {
+        return channel;
     }
 
     /**
@@ -47,8 +51,7 @@ public class SyskeResponse implements Response {
                 .append("<html><head><link rel=\"icon\" href=\"data:;base64,=\"></head><body>").append(content)
                 .append("</body></html>");
         // 将文本转为字节流
-        outputStream.write(httpResponse.toString().getBytes());
-        outputStream.flush();
-        outputStream.close();
+        channel.write(charset.encode(httpResponse.toString()));
+        channel.close();
     }
 }

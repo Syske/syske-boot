@@ -29,4 +29,10 @@ public interface Request {
      * @return
      */
     RequestHear getRequestHear();
+
+    /**
+     * 获取请求体
+     * @return
+     */
+    Object getRequestBody();
 }

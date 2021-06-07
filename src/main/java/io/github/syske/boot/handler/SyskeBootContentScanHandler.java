@@ -3,6 +3,7 @@ package io.github.syske.boot.handler;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Enumeration;
@@ -10,16 +11,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import io.github.syske.boot.annotation.ComponentScan;
-import io.github.syske.boot.annotation.Service;
-import io.github.syske.boot.service.TestService;
+import io.github.syske.boot.annotation.Controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import io.github.syske.boot.annotation.Autowired;
+import io.github.syske.boot.annotation.ComponentScan;
 import io.github.syske.boot.annotation.RequestMapping;
+import io.github.syske.boot.annotation.Service;
 
 /**
  * @program: syske-boot
@@ -63,6 +65,8 @@ public class SyskeBootContentScanHandler {
         try {
             // 初始话
             componentScanInit(aClass);
+            // 初始化IoC容器
+            initSyskeBootContent();
             // 扫描controller的RequestMapping
             initRequestMappingMap();
         } catch (Exception e) {
@@ -102,12 +106,32 @@ public class SyskeBootContentScanHandler {
             return;
         }
         classSet.forEach(aClass -> {
+            Annotation controller = aClass.getAnnotation(Controller.class);
+            if (Objects.isNull(controller)) {
+                return;
+            }
             Method[] methods = aClass.getDeclaredMethods();
             for (Method method : methods) {
                 RequestMapping annotation = method.getAnnotation(RequestMapping.class);
                 if (Objects.nonNull(annotation)) {
                     requestMappingMap.put(annotation.value(), method);
                 }
+            }
+            Field[] fields = aClass.getDeclaredFields();
+            try {
+                Object o = aClass.newInstance();
+                for (Field field : fields) {
+                    Autowired annotation = field.getAnnotation(Autowired.class);
+                    if (Objects.nonNull(annotation)) {
+                        field.setAccessible(true);
+                        field.set(o, contentMap.get(field.getType().getName()));
+                    }
+                }
+                contentMap.put(aClass.getName(), o);
+            } catch (InstantiationException e) {
+                logger.error("初始controller失败：", e);
+            } catch (IllegalAccessException e) {
+                logger.error("初始controller失败：", e);
             }
         });
         logger.info("scanRequestMapping end, requestMappingMap = {}", requestMappingMap);
@@ -116,11 +140,10 @@ public class SyskeBootContentScanHandler {
     /**
      * 初始化容器：扫描service注解类
      * 
-     * @param classSet
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    private static void initSyskeBootContent(Set<Class> classSet) {
+    private static void initSyskeBootContent() {
         logger.info("start to initSyskeBootContent ……");
         long startTIme = System.currentTimeMillis();
         if(classSet == null || classSet.size() == 0) {
@@ -185,19 +208,6 @@ public class SyskeBootContentScanHandler {
                 String fullClassName = String.format("%s.%s", packageName, className);
                 classSet.add(Class.forName(fullClassName));
             }
-        }
-    }
-
-    public static void main(String[] args) throws Exception{
-        scanPackage("io.github.syske.boot", classSet);
-        logger.info("classSet = {}", classSet);
-        initRequestMappingMap();
-        logger.info("requestMappingMap = {}", requestMappingMap);
-        initSyskeBootContent(classSet);
-        logger.info("contentMap = {}", contentMap);
-        Object o = contentMap.get("io.github.syske.boot.service.TestService");
-        if (o instanceof TestService) {
-            ((TestService)o).helloIoc("云中志");
         }
     }
 
