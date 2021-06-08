@@ -4,6 +4,7 @@ import io.github.syske.boot.annotation.Autowired;
 import io.github.syske.boot.annotation.Controller;
 import io.github.syske.boot.annotation.RequestMapping;
 import io.github.syske.boot.annotation.RequestParameter;
+import io.github.syske.boot.bean.TestBean;
 import io.github.syske.boot.service.TestService;
 
 /**
@@ -18,6 +19,9 @@ public class Test2Controller {
     @Autowired
     private TestService service;
 
+    @Autowired
+    private TestBean testBean;
+
     @RequestMapping("/test2")
     public String test2() {
         return "test2";
@@ -25,6 +29,7 @@ public class Test2Controller {
 
     @RequestMapping("/testAutowire")
     public String testAutowire(@RequestParameter("name") String name){
+        testBean.testBean();
         return service.helloIoc(name);
     }
 }

@@ -11,17 +11,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import io.github.syske.boot.annotation.Controller;
+import io.github.syske.boot.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
-import io.github.syske.boot.annotation.Autowired;
-import io.github.syske.boot.annotation.ComponentScan;
-import io.github.syske.boot.annotation.RequestMapping;
-import io.github.syske.boot.annotation.Service;
 
 /**
  * @program: syske-boot
@@ -32,15 +27,16 @@ import io.github.syske.boot.annotation.Service;
 public class SyskeBootContentScanHandler {
     private static final Logger logger = LoggerFactory.getLogger(SyskeBootContentScanHandler.class);
 
-    private static Set<Class> controllerSet = Sets.newHashSet();
     private static Set<Class> classSet = Sets.newHashSet();
     private static Map<String, Method> requestMappingMap = Maps.newHashMap();
     private static Map<String, Object> contentMap = Maps.newHashMap();
 
-    private SyskeBootContentScanHandler() {}
+    private SyskeBootContentScanHandler() {
+    }
 
     /**
      * 获取请求方法Map
+     *
      * @return
      */
     public static Map<String, Method> getRequestMappingMap() {
@@ -49,6 +45,7 @@ public class SyskeBootContentScanHandler {
 
     /**
      * 获取IOC集合
+     *
      * @return
      */
     public static Map<String, Object> getContentMap() {
@@ -57,14 +54,16 @@ public class SyskeBootContentScanHandler {
 
     /**
      * 类加载器初始化
-     * 
+     *
      * @throws IOException
      * @throws ClassNotFoundException
      */
     public static void init(Class aClass) {
         try {
-            // 初始话
+            // 扫描包
             componentScanInit(aClass);
+            // 初始化配置类
+            initConfiguration();
             // 初始化IoC容器
             initSyskeBootContent();
             // 扫描controller的RequestMapping
@@ -76,6 +75,7 @@ public class SyskeBootContentScanHandler {
 
     /**
      * 扫描指定的包路径，如果无该路径，则默认扫描服务器核心入口所在路径
+     *
      * @param aClass
      * @throws IOException
      * @throws ClassNotFoundException
@@ -88,7 +88,7 @@ public class SyskeBootContentScanHandler {
             Package aPackage = aClass.getPackage();
             scanPackage(aPackage.toString(), classSet);
         } else {
-            String[] value = ((ComponentScan)annotation).value();
+            String[] value = ((ComponentScan) annotation).value();
             for (String s : value) {
                 scanPackage(s, classSet);
             }
@@ -98,7 +98,6 @@ public class SyskeBootContentScanHandler {
 
     /**
      * 扫描controller的RequestMapping
-     * 
      */
     private static void initRequestMappingMap() {
         logger.info("start to scanRequestMapping, controllerSet = {}", classSet);
@@ -139,14 +138,14 @@ public class SyskeBootContentScanHandler {
 
     /**
      * 初始化容器：扫描service注解类
-     * 
+     *
      * @throws IOException
      * @throws ClassNotFoundException
      */
     private static void initSyskeBootContent() {
         logger.info("start to initSyskeBootContent ……");
         long startTIme = System.currentTimeMillis();
-        if(classSet == null || classSet.size() == 0) {
+        if (classSet == null || classSet.size() == 0) {
             return;
         }
         classSet.forEach(c -> {
@@ -167,6 +166,7 @@ public class SyskeBootContentScanHandler {
 
     /**
      * 判断指定类是否有指定的注解
+     *
      * @param zClass
      * @param annotationClass
      * @return
@@ -178,6 +178,7 @@ public class SyskeBootContentScanHandler {
 
     /**
      * 扫描指定包名下所有类，并生成classSet
+     *
      * @param packageName
      * @param classSet
      * @throws IOException
@@ -209,6 +210,29 @@ public class SyskeBootContentScanHandler {
                 classSet.add(Class.forName(fullClassName));
             }
         }
+    }
+
+    /**
+     * 初始化配置类
+     */
+    private static void initConfiguration() {
+        classSet.forEach(c -> {
+            try {
+                if (hasAnnotation(c, Configuration.class)) {
+                    Method[] methods = c.getMethods();
+                    Object o = c.newInstance();
+                    for (Method method : methods) {
+                        Bean annotation = method.getAnnotation(Bean.class);
+                        if (Objects.nonNull(annotation)) {
+                            Object invoke = method.invoke(o);
+                            contentMap.put(method.getReturnType().getName(), invoke);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("扫描配置类错误", e);
+            }
+        });
     }
 
 }
