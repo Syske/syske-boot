@@ -125,6 +125,7 @@ public class SyskeBootContentScanHandler {
                         field.setAccessible(true);
                         field.set(o, contentMap.get(field.getType().getName()));
                     }
+                    ConfigurationHandler.initValueConfig(o, field);
                 }
                 contentMap.put(aClass.getName(), o);
             } catch (InstantiationException e) {
@@ -153,6 +154,7 @@ public class SyskeBootContentScanHandler {
                 if (hasAnnotation(c, Service.class)) {
                     String name = c.getName();
                     Object o = c.newInstance();
+                    ConfigurationHandler.batchInitValueConfig(c, o);
                     contentMap.put(name, o);
                 }
             } catch (Exception e) {
@@ -221,6 +223,7 @@ public class SyskeBootContentScanHandler {
                 if (hasAnnotation(c, Configuration.class)) {
                     Method[] methods = c.getMethods();
                     Object o = c.newInstance();
+                    ConfigurationHandler.batchInitValueConfig(c, o);
                     for (Method method : methods) {
                         Bean annotation = method.getAnnotation(Bean.class);
                         if (Objects.nonNull(annotation)) {

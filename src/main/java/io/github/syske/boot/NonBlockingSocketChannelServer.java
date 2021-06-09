@@ -109,7 +109,9 @@ public class NonBlockingSocketChannelServer {
                         ite.remove();
                     }
                 } catch (Exception e) {
-                    ite.remove();
+                    if (Objects.nonNull(ite)) {
+                        ite.remove();
+                    }
                     logger.error("error: 端口占用为：{}，的连接的客户端下线了", keys.get(key).socket().getPort(), e);
                 }
             }

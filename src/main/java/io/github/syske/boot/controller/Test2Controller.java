@@ -32,4 +32,10 @@ public class Test2Controller {
         testBean.testBean();
         return service.helloIoc(name);
     }
+
+    @RequestMapping("/testValue")
+    public String testValue(){
+        String helloValue = service.helloValue();
+        return helloValue;
+    }
 }
