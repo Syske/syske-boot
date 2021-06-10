@@ -151,7 +151,9 @@ public class SyskeBootContentScanHandler {
         }
         classSet.forEach(c -> {
             try {
-                if (hasAnnotation(c, Service.class)) {
+                // 初始化过滤器
+                FilterHandler.init(c);
+                if (AnnotationUtil.hasAnnotation(c, Service.class)) {
                     String name = c.getName();
                     Object o = c.newInstance();
                     ConfigurationHandler.batchInitValueConfig(c, o);
@@ -164,18 +166,6 @@ public class SyskeBootContentScanHandler {
         });
         long useTime = System.currentTimeMillis() - startTIme;
         logger.info("initSyskeBootContent finished. useTime {}ms", useTime);
-    }
-
-    /**
-     * 判断指定类是否有指定的注解
-     *
-     * @param zClass
-     * @param annotationClass
-     * @return
-     */
-    private static boolean hasAnnotation(Class zClass, Class annotationClass) {
-        Annotation annotation = zClass.getAnnotation(annotationClass);
-        return Objects.nonNull(annotation);
     }
 
     /**
@@ -220,7 +210,7 @@ public class SyskeBootContentScanHandler {
     private static void initConfiguration() {
         classSet.forEach(c -> {
             try {
-                if (hasAnnotation(c, Configuration.class)) {
+                if (AnnotationUtil.hasAnnotation(c, Configuration.class)) {
                     Method[] methods = c.getMethods();
                     Object o = c.newInstance();
                     ConfigurationHandler.batchInitValueConfig(c, o);

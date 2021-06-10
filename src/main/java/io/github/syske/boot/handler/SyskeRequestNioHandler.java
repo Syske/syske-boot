@@ -10,9 +10,12 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import com.alibaba.fastjson.JSONObject;
 import io.github.syske.boot.http.RequestMethod;
+import io.github.syske.boot.web.filter.Filter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +88,18 @@ public class SyskeRequestNioHandler implements Runnable {
         }
         String requestMapping = requestHear.getRequestMapping();
         if (requestMappingMap.containsKey(requestMapping)) {
+            Map<Filter, String[]> filterUrlPatternsMap = FilterHandler.getFilterUrlPatternsMap();
+            Set<Map.Entry<Filter, String[]>> entrieSet = filterUrlPatternsMap.entrySet();
+            for (Map.Entry<Filter, String[]> entry : entrieSet) {
+                String[] values = entry.getValue();
+                for (String value : values) {
+                    if(Pattern.matches(value, requestMapping)) {
+                        Filter filter = entry.getKey();
+                        filter.doFilter(request, response, null);
+                    }
+
+                }
+            }
             Method method = requestMappingMap.get(requestMapping);
             logger.debug("method:{}", method);
             Object invoke = null;
