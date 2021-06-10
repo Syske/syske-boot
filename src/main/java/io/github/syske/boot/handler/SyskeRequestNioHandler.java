@@ -8,6 +8,8 @@ import java.net.Socket;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedList;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -89,17 +91,19 @@ public class SyskeRequestNioHandler implements Runnable {
         String requestMapping = requestHear.getRequestMapping();
         if (requestMappingMap.containsKey(requestMapping)) {
             Map<Filter, String[]> filterUrlPatternsMap = FilterHandler.getFilterUrlPatternsMap();
-            Set<Map.Entry<Filter, String[]>> entrieSet = filterUrlPatternsMap.entrySet();
-            for (Map.Entry<Filter, String[]> entry : entrieSet) {
-                String[] values = entry.getValue();
+            LinkedList<Filter> filterLinkedList = FilterHandler.getFilterLinkedList();
+            ListIterator<Filter> filterListIterator = filterLinkedList.listIterator();
+            while (filterListIterator.hasNext()) {
+                Filter filter = filterListIterator.next();
+                String[] values = filterUrlPatternsMap.get(filter);
                 for (String value : values) {
-                    if(Pattern.matches(value, requestMapping)) {
-                        Filter filter = entry.getKey();
+                    if(Pattern.matches(value.replace('/', '.'), requestMapping)) {
                         filter.doFilter(request, response, null);
                     }
 
                 }
             }
+
             Method method = requestMappingMap.get(requestMapping);
             logger.debug("method:{}", method);
             Object invoke = null;

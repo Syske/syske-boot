@@ -11,5 +11,11 @@ import java.io.IOException;
  * @date 2021-06-10 8:17
  */
 public interface FilterChain {
-    void doFilter(Request request, Response response, FilterChain filterChain) throws IOException;
+    /**
+     * filter调用链
+     * @param request
+     * @param response
+     * @throws IOException
+     */
+    void doFilter(Request request, Response response) throws IOException;
 }

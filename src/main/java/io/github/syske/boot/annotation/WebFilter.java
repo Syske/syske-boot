@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * @version 1.0
  * @date 2021-06-10 8:12
  */
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface WebFilter {
     String[] value() default {};
